@@ -1,0 +1,1 @@
+ALTER TABLE "orders" ADD COLUMN "refund_evidence_urls" text[] DEFAULT '{}'::text[] NOT NULL;
