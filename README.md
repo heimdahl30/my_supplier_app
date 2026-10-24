@@ -1,11 +1,11 @@
 # 🛒 MyStore — Enterprise Full-Stack Grocery Supply Platform
 
-[![Monorepo: Turborepo](https://shields.io)](https://turbo.build)
-[![Frontend: Next.js 15](https://shields.io)](https://nextjs.org)
-[![Backend: Node.js / Express](https://shields.io)](https://expressjs.com)
-[![Database: PostgreSQL](https://shields.io)](https://postgresql.org)
-[![Caching & Queues: Redis](https://shields.io)](https://redis.io)
-[![Real-Time: Socket.IO](https://shields.io)](https://socket.io)
+[![Monorepo: Turborepo](https://img.shields.io/badge/Monorepo-Turborepo-EF4444?style=flat&logo=turborepo)](https://turbo.build)
+[![Frontend: Next.js 15](https://img.shields.io/badge/Frontend-Next.js%2015-000000?style=flat&logo=next.js)](https://nextjs.org)
+[![Backend: Node.js / Express](https://img.shields.io/badge/Backend-Node.js%20%2F%20Express-339933?style=flat&logo=node.js)](https://expressjs.com)
+[![Database: PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-4169E1?style=flat&logo=postgresql)](https://postgresql.org)
+[![Caching & Queues: Redis](https://img.shields.io/badge/Cache-Redis-DC382D?style=flat&logo=redis)](https://redis.io)
+[![Real-Time: Socket.IO](https://img.shields.io/badge/Real--Time-Socket.IO-010101?style=flat&logo=socket.io)](https://socket.io)
 
 An enterprise-grade, high-throughput full-stack grocery supply and real-time logistics platform. The system is engineered to handle highly concurrent order placements, mitigate race conditions via relational row locking, stream low-latency driver telemetry data, maintain strict cross-application session validation, and guarantee transactional database invariants across decoupled software boundaries.
 
