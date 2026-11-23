@@ -1,11 +1,15 @@
 'use client';
 
 import { useAuth } from '@/hooks/useAuth';
-import AddAddressModal from '@/components/AddAddressModal'; // Import our new reusable validated sub-form modal
 import api from '@/services/api';
 import axios from 'axios';
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
+
+const AddAddressModal = dynamic(() => import('@/components/AddAddressModal'), {
+    ssr: false,
+});
 
 interface SavedAddress {
     id: number;

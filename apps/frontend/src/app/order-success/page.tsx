@@ -2,8 +2,9 @@
 
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Suspense } from 'react';
 
-export default function OrderSuccessPage() {
+function OrderSuccessContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
 
@@ -94,5 +95,21 @@ export default function OrderSuccessPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function OrderSuccessPage() {
+    return (
+        <Suspense
+            fallback={
+                <div className="min-h-screen flex items-center justify-center bg-slate-50">
+                    <p className="text-sm font-semibold text-slate-500">
+                        Loading order confirmation...
+                    </p>
+                </div>
+            }
+        >
+            <OrderSuccessContent />
+        </Suspense>
     );
 }
