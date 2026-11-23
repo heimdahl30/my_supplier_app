@@ -28,7 +28,7 @@ app.use(morgan('dev'));
 app.use('/api/v1', appRouter);
 
 // 🚀 2. THE HTTP CORE COUPLING: Wrap the Express engine to bind socket network listeners
-const httpServer = createServer(app);
+export const httpServer = createServer(app);
 
 // 🚀 3. INITIALIZE SOCKET.IO: Establish connection configurations and Cross-Origin policies
 export const io = new Server(httpServer, {

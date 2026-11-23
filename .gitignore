@@ -1,1 +1,8 @@
 node_modules
+/playwright-report/
+/test-results/
+/blob-report/
+/playwright/.cache/
+# Uploaded user/test media files (keep folder structure via .gitkeep)
+apps/backend/public/uploads/refunds/*
+!apps/backend/public/uploads/refunds/.gitkeep

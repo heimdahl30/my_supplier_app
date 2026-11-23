@@ -4,9 +4,10 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "start": "cross-env NODE_ENV=production node dist/index.js",
-        "dev": "cross-env NODE_ENV=development nodemon --exec ts-node src/index.ts",
-        "build": "tsup src/index.ts --format esm --clean",
+        "start": "cross-env NODE_ENV=production node dist/server.js",
+        "dev": "cross-env NODE_ENV=development nodemon --exec ts-node src/server.ts",
+        "dev:test": "cross-env NODE_ENV=test nodemon --exec ts-node src/server.ts",
+        "build": "tsup src/server.ts --format esm --clean",
         "test": "NODE_ENV=test npx drizzle-kit push --force && NODE_ENV=test node --import tsx --test --test-concurrency=1 tests/**/*.test.ts"
     },
     "keywords": [],

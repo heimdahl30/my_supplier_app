@@ -52,7 +52,7 @@ export default function AddAddressModal({
     const [modalCenter, setModalCenter] = useState<[number, number]>([fallbackLat, fallbackLon]);
     const [isSearchingForward, setIsSearchingForward] = useState(false);
 
-    // Initialize our Zod-validated state handlers cleanly
+    // Initialize our Zod-validated state handlers cleanly as useForm needs to know the structure of your data upfront
     const {
         register,
         handleSubmit,
@@ -66,9 +66,10 @@ export default function AddAddressModal({
 
     useEffect(() => {
         if (!isOpen) return; // Escape quickly if the modal is currently hidden from the viewport
+        let watchId = null;
 
         if (typeof window !== 'undefined' && navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
+            watchId = navigator.geolocation.watchPosition(
                 async (geoPosition) => {
                     const { latitude, longitude } = geoPosition.coords;
 
@@ -98,28 +99,30 @@ export default function AddAddressModal({
                     }
                 },
                 async (error) => {
-                    console.warn(
-                        'GPS location request dismissed by user. Using fallback baseline matrix.',
-                        error
-                    );
-
-                    // Reset state variables to your chosen default Sonari parameters seamlessly
-                    setModalCenter([fallbackLat, fallbackLon]);
-                    setValue('latitude', fallbackLat);
-                    setValue('longitude', fallbackLon);
-
-                    // Fetch the text address for your default baseline configurations cleanly
-                    try {
-                        const res = await axios.get(
-                            `http://localhost:5000/api/v1/geo/reverse-geocode?lat=${fallbackLat}&lon=${fallbackLon}`
+                    if (error.code === error.POSITION_UNAVAILABLE) {
+                        alert(
+                            "Location permitted, but your device's GPS/Location services are turned off. " +
+                                'Please turn on Location Services in your phone/system settings.'
                         );
-                        if (res.data?.display_name) {
-                            setValue('addressLine', res.data.display_name, {
-                                shouldValidate: true,
-                            });
+                    } else if (error.code === error.PERMISSION_DENIED) {
+                        // If they explicitly blocked it, NOW it makes sense to use the fallback baseline
+                        setModalCenter([fallbackLat, fallbackLon]);
+                        setValue('latitude', fallbackLat);
+                        setValue('longitude', fallbackLon);
+
+                        // Fetch the text address for your default baseline configurations cleanly
+                        try {
+                            const res = await axios.get(
+                                `http://localhost:5000/api/v1/geo/reverse-geocode?lat=${fallbackLat}&lon=${fallbackLon}`
+                            );
+                            if (res.data?.display_name) {
+                                setValue('addressLine', res.data.display_name, {
+                                    shouldValidate: true,
+                                });
+                            }
+                        } catch (err) {
+                            console.error('Initial fallback address lookup failed:', err);
                         }
-                    } catch (err) {
-                        console.error('Initial fallback address lookup failed:', err);
                     }
                 },
                 {
@@ -129,6 +132,11 @@ export default function AddAddressModal({
                 }
             );
         }
+        return () => {
+            if (watchId !== null) {
+                navigator.geolocation.clearWatch(watchId);
+            }
+        };
     }, [setValue, isOpen]); // Re-run this effect whenever the modal opens or closes
 
     if (!isOpen) return null; // Keep the modal completely invisible in RAM until triggered

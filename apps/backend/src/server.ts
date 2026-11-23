@@ -1,17 +1,28 @@
-import { createServer } from 'http';
-import app from './app.ts';
+import './env.ts';
+import db from './db/db.ts';
 import { connectRedis } from './db/redis.ts';
+import { sql } from 'drizzle-orm';
+import { httpServer } from './app.ts';
 
-// Re-wrap or look up the listening server
-const httpServer = createServer(app);
-
-// 🚨 THE SERVER ENGINE START BOOT CHECKPOINT
 const PORT = process.env.PORT || 5000;
-// CRUCIAL: You MUST call httpServer.listen(), NOT app.listen().
-// Calling app.listen() would bypass Socket.IO completely and cause your frontend connections to time out.
+
+async function assertDatabaseConnection() {
+    try {
+        await db.execute(sql`SELECT 1`);
+        console.log('====================================');
+        console.log('🟢 SUCCESS: Express is connected to PostgreSQL!');
+        console.log('====================================');
+    } catch (error) {
+        console.log('====================================');
+        console.log('🔴 CRITICAL: Database connection failed!');
+        console.error(error);
+        console.log('====================================');
+        process.exit(1);
+    }
+}
 
 async function startServer() {
-    // Trigger your cache layers before opening ports
+    await assertDatabaseConnection();
     await connectRedis();
 
     httpServer.listen(PORT, () => {

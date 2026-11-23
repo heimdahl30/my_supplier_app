@@ -78,7 +78,6 @@ export default function RegistrationMapPicker({
     onLocationSelected,
     forcedCenter,
 }: MapPickerProps) {
-    // Default fallback baseline coordinate matrix centered roughly on Jamshedpur, India if GPS fails
     const [isSearchingAddress, setIsSearchingAddress] = useState(false);
 
     // 🌟 THE HEALING SHIELD: Delay map engine initialization until modal animations settle completely
@@ -93,6 +92,7 @@ export default function RegistrationMapPicker({
         return () => clearTimeout(timer);
     }, []);
 
+    // Default fallback baseline coordinate matrix centered roughly on Jamshedpur, India if GPS fails
     const activeCenter: [number, number] = forcedCenter ?? [22.8137, 86.169];
 
     // 🍏 2. THE LOOP FIX: Wrapped in useCallback so it stays locked in memory, killing infinite render crashes!

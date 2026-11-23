@@ -19,13 +19,19 @@ productsRouter.get('/', publicCatalogLimiter, async (req, res) => {
     const cacheKey = `products:cat=${category || 'all'}:search=${search || 'none'}:p=${page || 1}:l=${limit || 20}`;
 
     try {
-        // 2. CHECK REDIS FIRST (The Cache Hit Attempt)
-        const cachedData = await redisClient.get(cacheKey);
+        if (redisClient.isOpen) {
+            try {
+                // 2. CHECK REDIS FIRST (The Cache Hit Attempt)
+                const cachedData = await redisClient.get(cacheKey);
 
-        if (cachedData && typeof cachedData === 'string') {
-            // High-Speed Win: Return data out of RAM in under 2ms!
-            console.log('⚡ Redis Cache Hit!');
-            return res.json(JSON.parse(cachedData));
+                if (cachedData && typeof cachedData === 'string') {
+                    // High-Speed Win: Return data out of RAM in under 2ms!
+                    console.log('⚡ Redis Cache Hit!');
+                    return res.json(JSON.parse(cachedData));
+                }
+            } catch (cacheReadErr) {
+                console.warn('Redis cache read skipped:', cacheReadErr);
+            }
         }
 
         const conditions = [];
@@ -69,9 +75,15 @@ productsRouter.get('/', publicCatalogLimiter, async (req, res) => {
             products: data,
         };
 
-        await redisClient.set(cacheKey, JSON.stringify(responsePayload), {
-            EX: 3600,
-        });
+        if (redisClient.isOpen) {
+            try {
+                await redisClient.set(cacheKey, JSON.stringify(responsePayload), {
+                    EX: 3600,
+                });
+            } catch (cacheWriteErr) {
+                console.warn('Redis cache write skipped:', cacheWriteErr);
+            }
+        }
 
         return res.json(responsePayload);
     } catch (error) {

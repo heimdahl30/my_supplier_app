@@ -1,0 +1,112 @@
+name: Full-Stack CI & E2E Pipeline
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+
+jobs:
+    test-and-verify:
+        name: Build, Backend API Tests & Playwright Multi-Role E2E
+        runs-on: ubuntu-latest
+
+        # 1. Spin up real PostgreSQL 16 and Redis 7 containers inside GitHub Actions
+        services:
+            postgres:
+                image: postgres:16-alpine
+                env:
+                    POSTGRES_USER: postgres
+                    POSTGRES_PASSWORD: postgres_ci_password
+                    POSTGRES_DB: my-supply-app-test-db
+                ports:
+                    - 5432:5432
+                options: >-
+                    --health-cmd pg_isready
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+
+            redis:
+                image: redis:7-alpine
+                ports:
+                    - 6379:6379
+                options: >-
+                    --health-cmd "redis-cli ping"
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+
+        # 2. Inject disposable CI environment variables (zero real secrets committed to Git)
+        env:
+            NODE_ENV: test
+            PORT: 5000
+            TEST_DATABASE_URL: postgresql://postgres:postgres_ci_password@localhost:5432/my-supply-app-test-db
+            DATABASE_URL: postgresql://postgres:postgres_ci_password@localhost:5432/my-supply-app-test-db
+            TEST_REDIS_URL: redis://localhost:6379
+            REDIS_URL: redis://localhost:6379
+            JWT_SECRET: ci_test_jwt_secret_key_123456
+            COOKIE_SECRET: ci_test_cookie_secret_key_123456
+            RAZORPAY_KEY_ID: rzp_test_ci_mock_key
+            RAZORPAY_KEY_SECRET: ci_test_razorpay_secret_123456
+            NEXT_PUBLIC_API_URL: http://localhost:5000/api/v1
+            NEXT_PUBLIC_RAZORPAY_KEY_ID: rzp_test_ci_mock_key
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 9
+
+            - name: Setup Node.js 20
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: 'pnpm'
+
+            - name: Install monorepo dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Verify production builds compile cleanly (Backend & Frontend)
+              run: |
+                  pnpm --filter my-supply-app-express-backend build
+                  pnpm --filter frontend build
+
+            - name: Push Drizzle schema & run Backend API tests
+              run: pnpm --filter my-supply-app-express-backend test
+
+            - name: Install Playwright Chromium browser
+              run: pnpm exec playwright install --with-deps chromium
+
+            - name: Run Full-Stack Playwright E2E Suite
+              run: pnpm exec playwright test
+
+            - name: Upload Playwright failure report (if any test fails)
+              if: failure()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: playwright-report
+                  path: playwright-report/
+                  retention-days: 7
+
+    # 3. Continuous Deployment (CD) Gate — runs ONLY after all builds & tests pass!
+    deploy:
+        name: Trigger Production Deployment (Render + Vercel)
+        needs: test-and-verify
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        runs-on: ubuntu-latest
+        steps:
+            - name: Trigger Backend Deploy Hook (Render)
+              if: env.BACKEND_DEPLOY_HOOK != ''
+              env:
+                  BACKEND_DEPLOY_HOOK: ${{ secrets.BACKEND_DEPLOY_HOOK }}
+              run: curl -X POST "$BACKEND_DEPLOY_HOOK"
+
+            - name: Trigger Frontend Deploy Hook (Vercel)
+              if: env.FRONTEND_DEPLOY_HOOK != ''
+              env:
+                  FRONTEND_DEPLOY_HOOK: ${{ secrets.FRONTEND_DEPLOY_HOOK }}
+              run: curl -X POST "$FRONTEND_DEPLOY_HOOK"

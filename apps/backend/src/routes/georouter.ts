@@ -30,8 +30,38 @@ geoRouter.get('/reverse-geocode', async (req, res) => {
 
         return res.status(200).json(response.data);
     } catch (error: any) {
-        console.error('[GEO REVERSE FAULT] Pipeline exception:', error.message);
-        return res.status(500).json({ error: 'External geocoding lookup failed.' });
+        // 🛡️ Using 'unknown' is the modern TypeScript standard for catch blocks
+        console.error('[GEO REVERSE FAULT] Pipeline exception triggered:');
+
+        if (axios.isAxiosError(error)) {
+            // 🌐 This is an Axios Network Error
+            if (error.response) {
+                // Nominatim active denial (e.g., 400 Bad Request for out-of-bound lat/lon, 429 Rate Limited)
+                console.error(`[Nominatim HTTP Error Status]: ${error.response.status}`);
+                console.error('Payload details:', error.response.data);
+
+                // You could choose to pass back a specific 422 or 400 down to frontend
+                return res.status(error.response.status).json({
+                    error: 'Location search rejected by upstream mapping server.',
+                });
+            } else if (error.request) {
+                // Nominatim servers are down, or your internet disconnected mid-request
+                console.error('[Network Timeout / Offline]: No response received from Nominatim.');
+                return res.status(503).json({
+                    error: 'Mapping services are currently unreachable. Please check your network.',
+                });
+            } else {
+                // Error configuration setup failure
+                console.error('[Axios Setup Issue]:', error.message);
+            }
+        } else {
+            // 💻 This is a Native JavaScript Code Crash (e.g. typos, memory leak, range error)
+            const nativeError = error as Error;
+            console.error('[Local Runtime Syntax/Logic Crash]:', nativeError.message);
+        }
+
+        // Standard 500 fallback for everything else
+        return res.status(500).json({ error: 'Internal system fault encountered.' });
     }
 });
 
@@ -68,16 +98,29 @@ geoRouter.get('/search-address', async (req, res) => {
         });
 
         return res.status(200).json(response.data);
-    } catch (error: any) {
-        console.error('[GEO SEARCH COMPILER CRASH] Local runtime execution exception caught:');
-        if (error.response) {
-            console.error(`Status code from Nominatim: ${error.response.status}`);
-            console.error('Payload:', error.response.data);
+    } catch (error: unknown) {
+        // Using 'unknown' is safer than 'any'
+        console.error('[GEO SEARCH COMPILER CRASH] Exception caught:');
+
+        if (axios.isAxiosError(error)) {
+            // TypeScript now knows this is definitely an Axios network error
+            if (error.response) {
+                // The server responded with a status code outside the 2xx range
+                console.error(`Status code from Nominatim: ${error.response.status}`);
+                console.error('Payload:', error.response.data);
+            } else if (error.request) {
+                // The request was made but no response was received (e.g., timeout/offline)
+                console.error('No response received from Nominatim. Network might be down.');
+            } else {
+                // Something happened in setting up the request that triggered an Error
+                console.error('Axios Setup Error:', error.message);
+            }
         } else {
-            console.error('Message:', error.message);
+            // This handles non-Axios errors (like a native JS code crash or typo)
+            const nativeError = error as Error;
+            console.error('Native JavaScript Error:', nativeError.message);
         }
 
-        // 🛡️ RECOVERY ENGINE: Pass back an empty array fallback instead of raising a 500 error code up the stack!
         return res.status(200).json([]);
     }
 });
