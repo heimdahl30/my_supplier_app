@@ -225,6 +225,9 @@ importers:
 
   apps/backend:
     dependencies:
+      axios:
+        specifier: ^1.20.0
+        version: 1.20.0
       bcrypt:
         specifier: ^6.0.0
         version: 6.0.0
