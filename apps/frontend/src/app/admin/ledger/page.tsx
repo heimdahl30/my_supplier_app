@@ -97,7 +97,7 @@ export default function ManagerLedgerCockpit() {
             async function fetchMasterLedger() {
                 try {
                     const res = await fetch(
-                        'http://localhost:5000/api/v1/admin/orders/ledger-master',
+                        `${process.env.NEXT_PUBLIC_BACKEND_URL || `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}`}/api/v1/admin/orders/ledger-master`,
                         {
                             method: 'GET',
                             credentials: 'include',
@@ -868,7 +868,7 @@ export default function ManagerLedgerCockpit() {
                                                                     ) => (
                                                                         <a
                                                                             key={idx}
-                                                                            href={`http://localhost:5000${imageUrl}`}
+                                                                            href={`${process.env.NEXT_PUBLIC_BACKEND_URL || `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}`}${imageUrl}`}
                                                                             target="_blank"
                                                                             rel="noopener noreferrer"
                                                                             className="w-10 h-10 rounded-xl border border-slate-800 bg-slate-950 overflow-hidden hover:border-amber-500 transition-colors flex items-center justify-center group flex-shrink-0 cursor-pointer relative"
@@ -877,7 +877,7 @@ export default function ManagerLedgerCockpit() {
                                                                                 🖼️
                                                                             </div>
                                                                             <Image
-                                                                                src={`http://localhost:5000${imageUrl}`}
+                                                                                src={`${process.env.NEXT_PUBLIC_BACKEND_URL || `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}`}${imageUrl}`}
                                                                                 alt="Evidence image"
                                                                                 fill // ✅ Tells Next.js to fill up the parent 10x10 anchor button container automatically
                                                                                 sizes="40px" // Tells the engine the explicit width scaling bounds to compress network payloads

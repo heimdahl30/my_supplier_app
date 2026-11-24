@@ -94,7 +94,7 @@ const OrdersReceived = () => {
         const loadFreshOrders = async () => {
             setIsTableLoading(true); // Turn on table shimmer skeleton rows right before fetch starts
             try {
-                const orders = await fetch('http://localhost:5000/api/v1/admin/orders/packing', {
+                const orders = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}`}/api/v1/admin/orders/packing`, {
                     method: 'GET',
                     credentials: 'include', // Ensure cookies are sent with the request
                 });
@@ -138,7 +138,7 @@ const OrdersReceived = () => {
         }
         try {
             const orderReady = await fetch(
-                `http://localhost:5000/api/v1/admin/orders/${id}/packed`,
+                `${process.env.NEXT_PUBLIC_BACKEND_URL || `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}`}/api/v1/admin/orders/${id}/packed`,
                 {
                     method: 'PATCH',
                     credentials: 'include',

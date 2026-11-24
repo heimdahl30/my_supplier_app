@@ -74,7 +74,7 @@ export default function SingleOrderTrackingPage() {
         fetchInitialOrderState();
 
         // 2. Open the socket connection pipeline lane securely
-        const socketInstance = io('http://localhost:5000', {
+        const socketInstance = io(`${process.env.NEXT_PUBLIC_BACKEND_URL || `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}`}`, {
             transports: ['websocket'],
             autoConnect: true,
             reconnectionAttempts: 5, // Stop spamming network nodes if backend drops hard

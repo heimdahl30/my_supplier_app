@@ -23,7 +23,7 @@ export default function DriverPayoutSetupPage() {
 
         try {
             // 🌐 Fires straight down to your Express backend router endpoint
-            await axios.patch('http://localhost:5000/api/v1/payout/payout-setup', formData, {
+            await axios.patch(`${process.env.NEXT_PUBLIC_BACKEND_URL || `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}`}/api/v1/payout/payout-setup`, formData, {
                 withCredentials: true,
             });
 

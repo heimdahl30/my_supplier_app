@@ -129,7 +129,7 @@ export default function GroceryStorefront() {
         // 🍏 A clean, standard single-pass data fetch loop on page mount
         async function fetchInitialCatalogSnapshot() {
             try {
-                const response = await fetch('http://localhost:5000/api/v1/products', {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}`}/api/v1/products`, {
                     method: 'GET',
                     headers: { 'Content-Type': 'application/json' },
                 });

@@ -86,7 +86,7 @@ const DeliveredOrders = () => {
             setIsTableLoading(true); // Turn on table shimmer skeleton rows right before fetch starts
             try {
                 const deliveredOrders = await fetch(
-                    'http://localhost:5000/api/v1/admin/orders/delivered',
+                    `${process.env.NEXT_PUBLIC_BACKEND_URL || `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}`}/api/v1/admin/orders/delivered`,
                     {
                         method: 'GET',
                         credentials: 'include', // 🌟 THE MAGIC LINK! Forces fetch to pass your cookies!

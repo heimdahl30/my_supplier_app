@@ -66,7 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         async function checkActiveSession() {
             try {
-                const response = await fetch('http://localhost:5000/api/v1/customers/account', {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}`}/api/v1/customers/account`, {
                     method: 'GET',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include', // 🌟 THE MAGIC LINK! Forces fetch to pass your cookies!
@@ -88,7 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const handleLogin = async (payload: LoginCredentials) => {
         try {
-            const response = await fetch('http://localhost:5000/api/v1/login', {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}`}/api/v1/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
@@ -105,7 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setAuth({ user: activeUserProfile, isLoading: false, isAuthenticated: true });
             // 🚀 2. THE FIX: Fetch their long-term database-saved cart lines instantly upon login!
             try {
-                const cartResponse = await axios.get('http://localhost:5000/api/v1/cart/fetch', {
+                const cartResponse = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL || `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}`}/api/v1/cart/fetch`, {
                     withCredentials: true, // Crucial: Passes user identity cookies securely!
                 });
 
@@ -130,7 +130,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
             // 1. Fire an empty POST request directly to your logout router path over the network
             // credentials: 'include' (or withCredentials: true) ensures the signed cookies travel safely!
-            await axios.post('http://localhost:5000/api/v1/logout', {}, { withCredentials: true });
+            await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL || `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}`}/api/v1/logout`, {}, { withCredentials: true });
 
             setQuantities({});
             setTotalBill(0);
@@ -184,7 +184,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 // Dispatch snapshot directly to your database profile endpoint mapping lanes!
                 // Using standard axios block since 'api' instance isn't imported here
                 await axios.post(
-                    'http://localhost:5000/api/v1/cart/sync',
+                    `${process.env.NEXT_PUBLIC_BACKEND_URL || `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}`}/api/v1/cart/sync`,
                     { itemsDict: filteredItemsDict },
                     { withCredentials: true } // Ensures user identity cookies pass safely
                 );

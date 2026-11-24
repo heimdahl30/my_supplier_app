@@ -43,7 +43,7 @@ export async function proxy(request: NextRequest) {
                 // Reach across the local network channels directly into your Express port 5000 endpoint!
                 // Critical: We must manually pass the cookie in the headers since this is server-to-server!
                 const refreshResponse = await fetch(
-                    'http://localhost:5000/api/v1/login/refresh-token',
+                    `${process.env.NEXT_PUBLIC_BACKEND_URL || `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}`}/api/v1/login/refresh-token`,
                     {
                         method: 'POST',
                         headers: {

@@ -102,7 +102,7 @@ export default function RegistrationMapPicker({
 
     const triggerReverseGeocode = useCallback(
         async (lat: number, lon: number) => {
-            const url = `http://localhost:5000/api/v1/geo/reverse-geocode?lat=${lat}&lon=${lon}`;
+            const url = `${process.env.NEXT_PUBLIC_BACKEND_URL || `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}`}/api/v1/geo/reverse-geocode?lat=${lat}&lon=${lon}`;
 
             // 🌟 1. FIX UNUSED 'setIsSearchingAddress': Turn spinner loading state ON
             setIsSearchingAddress(true);

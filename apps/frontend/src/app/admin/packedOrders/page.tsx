@@ -89,7 +89,7 @@ const PackedOrders = () => {
             setIsTableLoading(true); // Turn on table shimmer skeleton rows right before fetch starts
             try {
                 const packedOrders = await fetch(
-                    'http://localhost:5000/api/v1/admin/orders/available',
+                    `${process.env.NEXT_PUBLIC_BACKEND_URL || `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}`}/api/v1/admin/orders/available`,
                     {
                         method: 'GET',
                         credentials: 'include', // 🌟 THE MAGIC LINK! Forces fetch to pass your cookies!
@@ -147,7 +147,7 @@ const PackedOrders = () => {
         }
         try {
             const orderPicked = await fetch(
-                `http://localhost:5000/api/v1/admin/orders/${id}/claimed`,
+                `${process.env.NEXT_PUBLIC_BACKEND_URL || `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}`}/api/v1/admin/orders/${id}/claimed`,
                 {
                     method: 'PATCH',
                     credentials: 'include',

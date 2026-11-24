@@ -81,7 +81,7 @@ export default function AddAddressModal({
                     // Fetch the text address via backend proxy to automatically fill the form box on load
                     try {
                         const res = await axios.get(
-                            `http://localhost:5000/api/v1/geo/reverse-geocode?lat=${latitude}&lon=${longitude}`
+                            `${process.env.NEXT_PUBLIC_BACKEND_URL || `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}`}/api/v1/geo/reverse-geocode?lat=${latitude}&lon=${longitude}`
                         );
                         if (res.data) {
                             const addressDetails = res.data.address;
@@ -113,7 +113,7 @@ export default function AddAddressModal({
                         // Fetch the text address for your default baseline configurations cleanly
                         try {
                             const res = await axios.get(
-                                `http://localhost:5000/api/v1/geo/reverse-geocode?lat=${fallbackLat}&lon=${fallbackLon}`
+                                `${process.env.NEXT_PUBLIC_BACKEND_URL || `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}`}/api/v1/geo/reverse-geocode?lat=${fallbackLat}&lon=${fallbackLon}`
                             );
                             if (res.data?.display_name) {
                                 setValue('addressLine', res.data.display_name, {
@@ -176,7 +176,7 @@ export default function AddAddressModal({
 
         try {
             const response = await axios.get(
-                `http://localhost:5000/api/v1/geo/search-address?q=${encodeURIComponent(textQuery)}`
+                `${process.env.NEXT_PUBLIC_BACKEND_URL || `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}`}/api/v1/geo/search-address?q=${encodeURIComponent(textQuery)}`
             );
             if (response.data && response.data.length > 0) {
                 const firstResult = response.data[0];

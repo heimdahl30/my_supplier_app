@@ -171,7 +171,7 @@ export default function CheckoutPage() {
                     try {
                         // 4. STEP THREE: Send signature parameters to your validation route to update statuses
                         const paymentVerificationResponse = await axios.post(
-                            'http://localhost:5000/api/v1/payment/verify-signature',
+                            `${process.env.NEXT_PUBLIC_BACKEND_URL || `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}`}/api/v1/payment/verify-signature`,
                             {
                                 orderId: orderId,
                                 razorpayPaymentId: paymentSuccessPayload.razorpay_payment_id,

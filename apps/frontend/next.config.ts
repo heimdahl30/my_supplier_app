@@ -11,6 +11,11 @@ const nextConfig: NextConfig = {
                 port: '5000',
                 pathname: '**', // Matches anything, including double slashes or subfolders!
             },
+            {
+                protocol: 'https',
+                hostname: 'my-supplier-app.onrender.com',
+                pathname: '**',
+            },
         ],
     },
 };

@@ -75,7 +75,7 @@ export default function CustomerOrdersPage() {
 
         fetchAccountData();
 
-        const socketInstance = io('http://localhost:5000', { transports: ['websocket'] });
+        const socketInstance = io(`${process.env.NEXT_PUBLIC_BACKEND_URL || `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}`}`, { transports: ['websocket'] });
 
         socketInstance.on('connect', () => {
             console.log(`🔌 Connected! Joining personal updates channel for customer_${user?.id}`);

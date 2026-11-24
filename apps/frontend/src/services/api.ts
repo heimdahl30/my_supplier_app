@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: 'http://localhost:5000/api/v1',
+    baseURL: `${process.env.NEXT_PUBLIC_BACKEND_URL || `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}`}/api/v1`,
     withCredentials: true, // Crucial: Ensures cookies are sent with every request
 });
 
@@ -26,7 +26,7 @@ api.interceptors.response.use(
             try {
                 // 1. Silently request a new access token via cookies
                 await axios.post(
-                    'http://localhost:5000/api/v1/login/refresh-token',
+                    `${process.env.NEXT_PUBLIC_BACKEND_URL || `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000'}`}/api/v1/login/refresh-token`,
                     {},
                     { withCredentials: true }
                 );
