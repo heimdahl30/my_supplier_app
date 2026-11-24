@@ -1,5 +1,6 @@
 # 🛒 MyStore — Enterprise Full-Stack Grocery Supply Platform
 
+![CI/CD Pipeline](https://github.com/heimdahl30/my_supplier_app/actions/workflows/ci-cd.yml/badge.svg)
 [![Monorepo: Turborepo](https://img.shields.io/badge/Monorepo-Turborepo-EF4444?style=flat&logo=turborepo)](https://turbo.build)
 [![Frontend: Next.js 15](https://img.shields.io/badge/Frontend-Next.js%2015-000000?style=flat&logo=next.js)](https://nextjs.org)
 [![Backend: Node.js / Express](https://img.shields.io/badge/Backend-Node.js%20%2F%20Express-339933?style=flat&logo=node.js)](https://expressjs.com)
