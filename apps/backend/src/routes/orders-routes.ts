@@ -87,11 +87,26 @@ ordersRouter.post('/orderplacing', strictActionLimiter, authenticateToken, async
         }
 
         // 2. THE AIR ZONE Handshake: Talk to Razorpay first over the web without opening DB locks
-        const razorpayOrder = await razorpay.orders.create({
-            amount: Math.round(Number(totalPrice) * 100), // Convert standard rupees into Paise subunits (₹500 = 50000 paise)
-            currency: 'INR',
-            receipt: `receipt_order_${Date.now()}`,
-        });
+        let razorpayOrder: { id: string; amount: number | string; currency: string };
+
+        if (
+            process.env.NODE_ENV === 'test' ||
+            process.env.RAZORPAY_KEY_ID === 'rzp_test_ci_mock_key'
+        ) {
+            // Sandbox mock order for CI / automated tests
+            razorpayOrder = {
+                id: `order_ci_mock_${Date.now()}`,
+                amount: Math.round(Number(totalPrice) * 100),
+                currency: 'INR',
+            };
+        } else {
+            // Real Razorpay order creation in development & production
+            razorpayOrder = await razorpay.orders.create({
+                amount: Math.round(Number(totalPrice) * 100), // Convert standard rupees into Paise subunits (₹500 = 50000 paise)
+                currency: 'INR',
+                receipt: `receipt_order_${Date.now()}`,
+            });
+        }
 
         // 3. ENTER INTERCONNECTED HOUSING LAYERS: Open database transactional write locks
         const clientPaymentPayload = await db.transaction(async (tx) => {
