@@ -12,15 +12,26 @@ An enterprise-grade, high-throughput full-stack grocery supply and real-time log
 
 ---
 
+## 🌐 Live Production Deployment
+
+- **Live Storefront (Vercel):** [https://my-supplier-app.vercel.app](https://my-supplier-app.vercel.app)
+- **Backend API & WebSocket Hub (Render):** [https://my-supplier-app.onrender.com](https://my-supplier-app.onrender.com)
+- **Cloud Data Infrastructure:** Neon Serverless PostgreSQL + Upstash TLS Redis
+- **Automated CI/CD:** GitHub Actions (Vitest + Supertest Integration + 8-Phase Playwright E2E) → Test-Gated Webhook CD
+
+> _Note: The backend runs on Render's free tier—if the instance has spun down from inactivity, the initial API request may take ~30–50 seconds to cold-start._
+
+---
+
 ## 🏗️ Roadmap & Deployed Status Tracking
 
 The core logic, relational engines, transaction schemas, and integration testing suites of the system are fully operational. The final engineering milestones are mapped out as follows:
 
 - **[🟢 DONE] Phase 1:** Decoupled Monorepo Architecture, Lazy Drivers, and State Isolation Maps.
 - **[🟢 DONE] Phase 2:** Concurrency Matrix Row-Locking, Telemetry Handshakes, and Route Logic Testing.
-- **[⏳ PENDING] Phase 3: Comprehensive End-to-End (E2E) Test Coverage.** Designing complete graphical user interface simulation automation scripts via Playwright/Cypress.
-- **[⏳ PENDING] Phase 4: CI/CD Pipeline Automation.** Building out heavy GitHub Actions delivery workflows to test code layers on every commit pull request.
-- **[🚀 UPCOMING] Phase 5: Production Cloud Deployment.** The platform will be deployed live to distributed edge networks (Vercel / Render / AWS) immediately upon the successful completion of E2E verification pipelines and green CI/CD configurations.
+- **[🟢 DONE] Phase 3: Comprehensive End-to-End (E2E) Test Coverage.** Full 8-phase browser simulation suite via Playwright alongside Vitest frontend unit tests and Supertest backend integration tests.
+- **[🟢 DONE] Phase 4: CI/CD Pipeline Automation.** Multi-job GitHub Actions workflow provisioning ephemeral PostgreSQL & Redis containers, validating production builds, and gating deployments on green tests.
+- **[🟢 DONE] Phase 5: Production Cloud Deployment.** Deployed live across Vercel (Next.js Edge), Render (Express + Socket.IO), Neon Serverless PostgreSQL, and Upstash TLS Redis with test-gated webhook CD.
 
 ---
 
@@ -50,7 +61,7 @@ The platform rejects monolithic limitations in favor of a hybrid, decoupled arch
                         ▼ (Lazy Pool/Transaction)  ▼ (TCP Socket Cluster)   ▼ (Webhook Broker)
            ┌────────────────────────┐┌────────────────────────┐┌────────────────────────┐
            │     PostgreSQL DB      ││   Redis Cache Engine   ││     Razorpay Cloud     │
-           │ (ACID Invariant Store) ││ (Docker Sandbox Mesh)  ││   (Gateway Backend)    │
+           │ (ACID Invariant Store) ││ (Upstash TLS / Docker) ││   (Gateway Backend)    │
            └────────────────────────┘└────────────────────────┘└────────────────────────┘
 ```
 
@@ -74,7 +85,7 @@ To avoid the cognitive overhead of deeply nested prop-drilling or bulky external
 
 Authentication security completely avoids fragile, local-storage token storage vulnerable to Cross-Site Scripting (XSS) injections.
 
-- **Cryptographic Cookie Interception:** The platform implements a rigid **HttpOnly, SameSite=Strict, Signed Cookie** authentication strategy.
+- **Cryptographic Cookie Interception:** The platform implements a rigid **HttpOnly, SameSite=None, Signed Cookie** authentication strategy.
 - **State Verification:** Session payloads (JSON Web Tokens) are securely serialized and injected into response cookies by the Express backend using a robust `COOKIE_SECRET` hash signature.
 - **Middleware Interceptors:** Every sub-route request intercepts the incoming cookie header, cryptographically verifies that the token was untampered with on the server, matches user roles (Customer, Warehouse staff, Driver), and allows secure access across isolated application boundaries.
 
@@ -154,71 +165,89 @@ The application intentionally selects **PostgreSQL** over NoSQL alternatives (li
 The monorepo organizes its code using clean, separate workspace paths:
 
 ```text
-mystore/
+my-supply-app-monorepo/
+├── .github/
+│   └── workflows/
+│       └── ci-cd.yml          # Automated CI/CD pipeline (Tests + Playwright E2E + Webhook CD)
 ├── apps/
-│   ├── frontend/             # Next.js 15 Platform (Leaflet GIS Maps, React Context Providers)
-│   └── backend/              # Express API Server Core & Socket.IO Telemetry Hubs
+│   ├── frontend/              # Next.js 15 App Router (Leaflet GIS Maps, React Context, Vitest)
+│   └── backend/               # Express API Server & Socket.IO Real-Time Telemetry Hub
 │       ├── src/
-│       │   ├── app.ts        # Dormant, un-listening App & Socket.IO configurations
-│       │   ├── server.ts     # Production port activation execution entrypoint
-│       │   ├── index.ts      # Global routing entrypoint mount pipeline registry
-│       │   ├── db/           # Drizzle Schema definitions, Drivers, & Pool clients
-│       │   ├── middlewares/  # Authentication interceptors & validation guards
-│       │   └── routes/       # Auth, Order Row Locking Transactions, & Logistics paths
-│       └── tests/            # Automated Integration test suites (Auth, Admin, Delivery)
-├── package.json              # Shared monorepo dependency workspace configuration
-└── .gitignore                # Recursive root-level pattern ignore filter
+│       │   ├── app.ts         # Express & Socket.IO configuration, CORS, & middleware pipeline
+│       │   ├── server.ts      # Production HTTP + WebSocket listener entrypoint
+│       │   ├── db/            # Drizzle ORM schema definitions, drivers, & connection pool
+│       │   ├── middlewares/   # JWT cookie auth guards, role checks, & Redis rate limiters
+│       │   └── routes/        # Auth, Orders (FOR UPDATE locking), Razorpay webhooks, & Admin
+│       └── tests/             # Supertest + node:test backend integration suites
+├── e2e/                       # 8-phase full-stack Playwright E2E test suite
+├── playwright.config.ts       # Playwright orchestration config
+├── package.json               # Turborepo / pnpm workspace root configuration
+└── pnpm-workspace.yaml        # Workspace package definitions
 ```
 
 ---
 
-## 🔬 Testing Strategy & Environmental Isolation
+## 🔬 Testing Strategy & Automated CI/CD
 
-The platform contains a robust integration testing framework built using Node's native runner (`node --test`), Supertest, and a dedicated database testing container.
+The platform is verified across three automated testing layers executed on every push and pull request via **GitHub Actions**:
 
-Tests follow a strict, isolated lifecycle flow to ensure results are always reliable and reproducible:
+1. **Backend Integration Tests (`node --test` + Supertest):**
+    - Spins up isolated PostgreSQL and Redis instances, pushes the Drizzle schema (`drizzle-kit push`), and verifies authentication, RBAC permissions, rate limiting, Razorpay webhooks, and `FOR UPDATE` concurrency locks.
+2. **Frontend Component Unit Tests (`Vitest` + MSW):**
+    - Validates React forms, interactive address/map modals, and mocked API boundaries.
+3. **Full-Stack End-to-End Browser Verification (`Playwright`):**
+    - Runs an automated 8-phase Chromium walkthrough covering customer signup/login, product catalog creation, checkout & webhook confirmation, warehouse packing, driver claim & live GPS telemetry, delivery split payout, and admin refund approval.
 
-1. **`before()` Bootstrapping:** Explicitly connects the eager Redis client handles and prepares clean test sandbox schemas before any network routes fire.
-2. **Deterministic Interception:** Intercepts database tables directly during intermediate checkout tests using Drizzle queries, simulating successful webhooks to update order statuses instantly without hitting real external payment processing networks.
-3. **`after()` Teardown Hooks:** Implements an ordered cleanup sequence. It securely terminates Socket.IO ping timers (`io.close()`), flushes the active Redis test keyspaces (`redisClient.flushDb()`), and closes out the Postgres pool to ensure no active handles are left hanging.
-
-To execute the automated integration test pipeline, run the following command from the root directory:
+To run the test suites locally:
 
 ```bash
+# Backend integration tests
 pnpm test
+
+# Frontend unit tests
+pnpm --filter frontend test
+
+# Full-stack Playwright E2E suite
+npx playwright test
 ```
 
 ---
 
-## 🚀 Execution & Local Development Setup
+## 🚀 Local Development Setup
 
-The monorepo architecture allows granular execution control. Applications and cache containers can be targeted individually across isolated terminal windows during active feature development phases.
+### 1. Start Local Redis Cache
 
-### 1. Activating the Backend Infrastructure Sockets
-
-Ensure Docker Desktop is active. Spin up your dedicated local cache container engine handle over your system port channels:
+Ensure Docker Desktop is running, then start your local Redis container:
 
 ```bash
 docker start my-redis
 ```
 
-### 2. Bootstrapping Project Dependencies
+### 2. Install Workspace Dependencies
 
-From the absolute root directory of the monorepo workspace, download your collective application package maps recursively:
+From the root of the monorepo:
 
 ```bash
 pnpm install
 ```
 
-### 3. Running the Microservice Cluster via Target Filters
+### 3. Push Database Schema
 
-Open separate terminal tracking contexts to run the apps independently, allowing you to isolate log traces cleanly:
+Push your Drizzle schema to your local PostgreSQL instance:
 
-- **To initialize the Express.js Backend Telemetry Hub:**
+```bash
+cd apps/backend && npx drizzle-kit push && cd ../..
+```
+
+### 4. Run Backend & Frontend Concurrently
+
+Open two terminal windows from the repository root:
+
+- **Start the Express.js + Socket.IO Backend (`http://localhost:5000`):**
     ```bash
     pnpm --filter my-supply-app-express-backend dev
     ```
-- **To initialize the Next.js Frontend Presentation Layer:**
+- **Start the Next.js Frontend (`http://localhost:3000`):**
     ```bash
     pnpm --filter frontend dev
     ```
