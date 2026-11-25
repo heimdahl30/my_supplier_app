@@ -8,6 +8,7 @@ import { createServer } from 'http'; // 🚀 Native Node.js HTTP server construc
 import { Server } from 'socket.io';
 
 const app = express();
+app.set('trust proxy', 1);
 
 const allowedOrigins = [
     'http://localhost:3000',
